@@ -2,6 +2,10 @@
 name = "bevy_godot"
 version = "0.1.0"
 edition = "2021"
+authors = ["Patryk Kalinowski <patryk@kalinowski.dev"]
+description = "Bring the power of Bevy ECS into Godot"
+repository = "https://github.com/patrislav/bevy_godot"
+license = "MIT"
 
 [dependencies]
 gdnative = { version = "0.9.3" }
