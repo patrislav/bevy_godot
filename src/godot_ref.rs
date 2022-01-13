@@ -4,12 +4,6 @@ use bevy::prelude::{
 use gdnative::{
     Ref,
     GodotObject,
-    core_types::{
-        Rect2,
-    },
-    api::{
-        Node2D,
-    },
 };
 
 #[derive(Component)]

@@ -1,3 +1,4 @@
+mod godot_binding;
 mod godot_ref;
 mod godot_registry;
 mod components;
@@ -5,6 +6,7 @@ mod components;
 pub use godot_ref::*;
 pub use godot_registry::*;
 pub use components::*;
+pub use godot_binding::*;
 
 use bevy::prelude::IntoExclusiveSystem;
 
@@ -27,9 +29,9 @@ impl bevy::app::Plugin for GodotBindingPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app.init_resource::<GodotRegistry>();
 
-        // spawn_godot_scenes must be exclusive since it uses ResourceLoader singleton
-        app.add_system(components::spawn_godot_scenes_exclusive.exclusive_system());
-        app.add_system(components::sync_node2d_transform);
-        app.add_system(components::sync_animated_sprite);
+        app.add_system(sync_godot_bindings_system.exclusive_system());
+        app.add_system(components::spawn_godot_scenes_system.exclusive_system());
+        app.add_system(components::sync_node2d_transform_system);
+        app.add_system(components::sync_animated_sprite_system);
     }
 }

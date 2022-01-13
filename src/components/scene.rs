@@ -1,15 +1,15 @@
 use bevy::prelude::*;
-use gdnative::api::{Node, Node2D, Area2D, PackedScene};
-use gdnative::godot_print;
+use gdnative::api::{Node, PackedScene};
+use gdnative::godot_warn;
 
-use crate::{GodotRef, GodotRegistry, Transform2D};
+use crate::{GodotRef, insert_node_components, insert_node_components_recursive};
 
 #[derive(Component)]
 pub struct GodotScene {
     pub path: &'static str,
 }
 
-pub fn spawn_godot_scenes_exclusive(world: &mut World) {
+pub fn spawn_godot_scenes_system(world: &mut World) {
     let loader = gdnative::api::ResourceLoader::godot_singleton();
 
     let mut scene_q = world.query_filtered::<
@@ -28,7 +28,7 @@ pub fn spawn_godot_scenes_exclusive(world: &mut World) {
             let res = res.cast::<PackedScene>().expect("expected resource to be a PackedScene");
             let res = unsafe { res.assume_safe() };
             if !res.can_instance() {
-                godot_print!("cannot instance scene '{}'", scene.path);
+                godot_warn!("cannot instance scene '{}'", scene.path);
                 continue;
             }
 
@@ -42,26 +42,14 @@ pub fn spawn_godot_scenes_exclusive(world: &mut World) {
                 instance_tref.set_owner(parent_ref.0);
 
                 // Bind to Bevy entities
-                let class = instance_tref.get_class().to_string();
-                match class.as_str() {
-                    "Area2D" => {
-                        let node = instance_tref.cast::<Node2D>().expect("expected Area2D to inherit Node2D");
-                        crate::insert_godot_ref_entity_mut::<Node>(instance_tref, world.entity_mut(entity));
-                        crate::insert_godot_ref_entity_mut::<Node2D>(instance_tref, world.entity_mut(entity));
-                        crate::insert_godot_ref_entity_mut::<Area2D>(instance_tref, world.entity_mut(entity));
-
-                        if let Some(transform) = world.get::<Transform2D>(entity) {
-                            node.set_position(transform.position);
-                            node.set_rotation(transform.rotation);
-                            node.set_scale(transform.scale);
-                            node.set_z_index(transform.z_index);
-                        }
-                    }
-                    _ => ()
+                insert_node_components(instance_tref, &mut world.entity_mut(entity));
+                let child_entities = insert_node_components_recursive(world, instance_tref);
+                if !child_entities.is_empty() {
+                    world.entity_mut(entity).push_children(&child_entities);
                 }
             }
         } else {
-            godot_print!("no such scene '{}'", scene.path);
+            godot_warn!("no such scene '{}'", scene.path);
         }
     }
 }
