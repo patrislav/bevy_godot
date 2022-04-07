@@ -2,11 +2,12 @@ use bevy::prelude::*;
 use gdnative::api::{Node, PackedScene};
 use gdnative::log::godot_warn;
 
-use crate::{GodotRef, insert_node_components, insert_node_components_recursive};
+use crate::{GodotRef, insert_node_components, insert_node_components_recursive, insert_node_components_recursive_flat};
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct GodotScene {
     pub path: &'static str,
+    pub flat: bool,
 }
 
 pub fn spawn_godot_scenes_system(world: &mut World) {
@@ -23,12 +24,14 @@ pub fn spawn_godot_scenes_system(world: &mut World) {
         let scene = world.get::<GodotScene>(entity).unwrap();
         let parent = world.get::<Parent>(entity).unwrap();
 
+        let (path, flat) = (scene.path, scene.flat);
+
         // Load the resource as "PackedScene"
-        if let Some(res) = loader.load(scene.path, "PackedScene", false) {
+        if let Some(res) = loader.load(path, "PackedScene", false) {
             let res = res.cast::<PackedScene>().expect("expected resource to be a PackedScene");
             let res = unsafe { res.assume_safe() };
             if !res.can_instance() {
-                godot_warn!("cannot instance scene '{}'", scene.path);
+                godot_warn!("cannot instance scene '{}'", path);
                 continue;
             }
 
@@ -43,9 +46,14 @@ pub fn spawn_godot_scenes_system(world: &mut World) {
 
                 // Bind to Bevy entities
                 insert_node_components(instance_tref, &mut world.entity_mut(entity));
-                let child_entities = insert_node_components_recursive(world, instance_tref);
-                if !child_entities.is_empty() {
-                    world.entity_mut(entity).push_children(&child_entities);
+
+                if flat {
+                    insert_node_components_recursive_flat(instance_tref, &mut world.entity_mut(entity));
+                } else {
+                    let child_entities = insert_node_components_recursive(world, instance_tref);
+                    if !child_entities.is_empty() {
+                        world.entity_mut(entity).push_children(&child_entities);
+                    }
                 }
             }
         } else {

@@ -73,6 +73,20 @@ pub fn insert_node_components_recursive(world: &mut World, node: TRef<Node>) -> 
     child_entities
 }
 
+pub fn insert_node_components_recursive_flat(node: TRef<Node>, entity_mut: &mut EntityMut) {
+    let child_count = node.get_child_count();
+    for i in 0..child_count {
+        let child = node
+            .get_child(i)
+            .unwrap_or_else(|| panic!("expected to find child at position {}", i));
+        let child = unsafe { child.assume_safe() };
+        let class = child.get_class().to_string();
+        let class = class.as_str();
+        insert_single_type_components(class, child, entity_mut);
+        insert_node_components_recursive_flat(child, entity_mut);
+    }
+}
+
 fn insert_single_type_components(class: &str, node: TRef<Node>, entity_mut: &mut EntityMut) {
     match class {
         "Node" => { insert_godot_ref::<Node>(node, entity_mut); }
