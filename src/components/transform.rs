@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::ecs::world::EntityMut;
 use crate::GodotRef;
-use gdnative::TRef;
+use gdnative::prelude::TRef;
 use gdnative::api::Node2D;
 use gdnative::core_types::Vector2;
 

@@ -4,7 +4,7 @@ use bevy::prelude::{
     Query,
 };
 use bevy::ecs::world::EntityMut;
-use gdnative::{api, TRef};
+use gdnative::{api, prelude::TRef};
 
 use crate::GodotRef;
 

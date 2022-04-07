@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use gdnative::api::{Node, PackedScene};
-use gdnative::godot_warn;
+use gdnative::log::godot_warn;
 
 use crate::{GodotRef, insert_node_components, insert_node_components_recursive};
 

@@ -1,7 +1,7 @@
 use bevy::prelude::{
     Component,
 };
-use gdnative::{
+use gdnative::prelude::{
     Ref,
     GodotObject,
 };
