@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use gdnative::{api::Node, log::godot_warn};
 
-use crate::{GodotRef, GodotRegistry, insert_node_components, insert_node_components_recursive};
+use crate::{GodotRef, GodotRegistry};
 
 #[derive(Component)]
 pub struct GodotBinding {
@@ -21,7 +21,7 @@ impl GodotBinding {
 
 pub fn sync_godot_bindings_system(world: &mut World) {
     let gdr = match world.get_resource::<GodotRegistry>() {
-        Some(gdr) => gdr,
+        Some(gdr) => gdr.clone(),
         None => return,
     };
     let root_ref = gdr.root_ref.unwrap();
@@ -44,9 +44,9 @@ pub fn sync_godot_bindings_system(world: &mut World) {
         };
         let node = unsafe { node.assume_safe() };
 
-        insert_node_components(node, &mut world.entity_mut(entity));
+        gdr.insert_node_components(node, &mut world.entity_mut(entity));
         if recursive {
-            let child_entities = insert_node_components_recursive(world, node);
+            let child_entities = gdr.insert_node_components_recursive(world, node);
             world.entity_mut(entity).push_children(&child_entities);
         }
     }

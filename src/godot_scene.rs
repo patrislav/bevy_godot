@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use gdnative::api::{Node, PackedScene};
 use gdnative::log::godot_warn;
 
-use crate::{GodotRef, insert_node_components, insert_node_components_recursive, insert_node_components_recursive_flat};
+use crate::{GodotRef, GodotRegistry};
 
 #[derive(Component, Default)]
 pub struct GodotScene {
@@ -12,6 +12,7 @@ pub struct GodotScene {
 
 pub fn spawn_godot_scenes_system(world: &mut World) {
     let loader = gdnative::api::ResourceLoader::godot_singleton();
+    let gdr = world.get_resource::<GodotRegistry>().expect("expected GodotRegistry").clone();
 
     let mut scene_q = world.query_filtered::<
         Entity,
@@ -45,12 +46,12 @@ pub fn spawn_godot_scenes_system(world: &mut World) {
                 instance_tref.set_owner(parent_ref.0);
 
                 // Bind to Bevy entities
-                insert_node_components(instance_tref, &mut world.entity_mut(entity));
+                gdr.insert_node_components(instance_tref, &mut world.entity_mut(entity));
 
                 if flat {
-                    insert_node_components_recursive_flat(instance_tref, &mut world.entity_mut(entity));
+                    gdr.insert_node_components_recursive_flat(instance_tref, &mut world.entity_mut(entity));
                 } else {
-                    let child_entities = insert_node_components_recursive(world, instance_tref);
+                    let child_entities = gdr.insert_node_components_recursive(world, instance_tref);
                     if !child_entities.is_empty() {
                         world.entity_mut(entity).push_children(&child_entities);
                     }
