@@ -33,5 +33,6 @@ impl bevy::app::Plugin for GodotBindingPlugin {
         app.add_system(components::spawn_godot_scenes_system.exclusive_system());
         app.add_system(components::sync_node2d_transform_system);
         app.add_system(components::sync_animated_sprite_system);
+        app.add_system(components::sync_label_system);
     }
 }

@@ -5,6 +5,7 @@ use gdnative::api::{
     Area2D,
     Node,
     Node2D,
+    Label,
     Sprite,
     Path2D,
     PathFollow2D,
@@ -39,6 +40,8 @@ pub fn get_node_super_class(class: &str) -> Option<&str> {
         "PathFollow2D" => Some("Node2D"),
         "CollisionObject2D" => Some("Node2D"),
         "Area2D" => Some("CollisionObject2D"),
+        "Control" => Some("CanvasItem"),
+        "Label" => Some("Control"),
         _ => None,
     }
 }
@@ -104,6 +107,14 @@ fn insert_single_type_components(class: &str, node: TRef<Node>, entity_mut: &mut
                 components::sync_animated_sprite(node, comp);
             } else {
                 components::insert_animated_sprite(node, entity_mut);
+            }
+        }
+        "Label" => {
+            let node = insert_godot_ref::<Label>(node, entity_mut);
+            if let Some(comp) = entity_mut.get::<components::Label>() {
+                components::sync_label(node, comp);
+            } else {
+                components::insert_label(node, entity_mut);
             }
         }
         "Sprite" => { insert_godot_ref::<Sprite>(node, entity_mut); }
